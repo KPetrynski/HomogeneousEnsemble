@@ -6,14 +6,17 @@ import h_ensemble
 
 
 class StremLearn():
-    def __init__(self, classifier, preprocessing_methods, preprocessing_methods_names, stream_name, chunk_size=500):
+    def __init__(self, classifier, classifier_name, preprocessing_methods, preprocessing_methods_names, stream_name,
+                 chunk_size=500):
         self.ensemble = h_ensemble.HomogeneousEnsemble(classifier, preprocessing_methods)
         self.classifier = classifier
+        self.classifier_name = classifier_name
         self.preprocessing_methods = preprocessing_methods
         self.preprocessing_methods_names = preprocessing_methods_names
         self.stream_name = stream_name
         self.chunk_size = chunk_size
-        self.scores = []
+        self.scores_acc = []
+        self.scores_kappa = []
 
     # Here we have X and y
     def read_streams(self):
@@ -44,9 +47,10 @@ class StremLearn():
             # print("chunk number: ", i, " | start: ", start, " | end: ", end)
             chunk_X, chunk_y = self.getChunk(X, y, start, end)
             self.ensemble.partial_fit(chunk_X, chunk_y)
-            score = self.ensemble.get_score(X, y)
-            self.scores.append(score)
-        print("scores: ", self.scores)
+            score_acc, score_kappa = self.ensemble.get_score(X, y)
+            self.scores_acc.append(score_acc)
+            self.scores_kappa.append(score_kappa)
+        self.print_scores()
 
     def test_preprocessing(self, X, y):
         print("\n\n !!!! original: !!!")
@@ -55,6 +59,11 @@ class StremLearn():
             X_resampled, y_resampled = self.preprocessing_methods[i].fit_sample(X, y)
             print("--------------------------------------- \npreprocessed - ", self.preprocessing_methods_names[i])
             self.print_data_classes_percentage(y_resampled)
+
+    def print_scores(self):
+        print("Classifier: ", self.classifier_name, ", Chunk size: ", self.chunk_size)
+        print("accuracy_score: ", self.scores_acc)
+        print("cohen_kappa_score: ", self.scores_kappa)
 
     def run(self):
         X, y = self.read_streams()

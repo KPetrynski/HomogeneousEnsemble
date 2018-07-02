@@ -17,8 +17,8 @@ def preprocessingTomek(self, X, y):
     return X_resampled, y_resampled
 
 
-def run(stream_name, chunk_size):
-    streamLearner = sl.StremLearn(neural_network.MLPClassifier(), methods, methods_names, stream_name,
+def run(stream_name, chunk_size, classifier=neural_network.MLPClassifier(), classifier_name="MLP"):
+    streamLearner = sl.StremLearn(classifier, classifier_name, methods, methods_names, stream_name,
                                   chunk_size=chunk_size)
     streamLearner.run()
 

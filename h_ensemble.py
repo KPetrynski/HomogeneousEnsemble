@@ -60,5 +60,8 @@ class HomogeneousEnsemble():
         return (y_pred)
 
     def get_score(self, X, y):
+        # returns two elements:
+        # (i) first accuracy_score,
+        # (ii) second kappa_statistic
         y_pred = self.predict(X)
-        return accuracy_score(y, y_pred)
+        return accuracy_score(y, y_pred), metrics.cohen_kappa_score(y, y_pred)
