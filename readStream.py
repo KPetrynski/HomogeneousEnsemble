@@ -1,9 +1,12 @@
 import numpy as np
 import pandas as pd
 import arff
+from imblearn.combine import SMOTEENN, SMOTETomek
 # progress bar
-import tqdm
-
+from tqdm import tqdm
+from sklearn import neural_network
+from imblearn.over_sampling import RandomOverSampler, SMOTE, ADASYN
+from imblearn.under_sampling import RandomUnderSampler, EditedNearestNeighbours, CondensedNearestNeighbour, AllKNN, RepeatedEditedNearestNeighbours
 
 #  Here we have X and y
 def read_streams(stream_names):
@@ -33,14 +36,33 @@ def getChunk(X, y, start, end):
     return chunk_X, chunk_y
 
 
-def chunkData(stream_name, X, y, initial_size=1000, chunk_size=500):
-    for i in range(0, int(len(y) / chunk_size)):
+def chunkData(stream_name, X, y, initial_size=1000, chunk_size=2500):
+    number_of_samples = len(y)
+    for i in tqdm(range(number_of_samples // chunk_size), desc='CHN', ascii=True):
         start = i * chunk_size
         end = start + chunk_size
         # print("chunk number: ", i, " | start: ", start, " | end: ", end)
         chunk_X, chunk_y = getChunk(X, y, start, end)
+        preprocessing(chunk_X, chunk_y)
 
 
-stream_names = ["stream_gen_10k_0.20_1_f6_normal", "stream_gen_10k_0.20_5_f6_uniform"]
+def learnMLP(X, y):
+    clf = neural_network.MLPClassifier()
+    clf.partial_fit(X, y)
+
+def preprocessing(X, y):
+    smote_tomek = SMOTETomek(random_state=0)
+    X_resampled, y_resampled = smote_tomek.fit_sample(X, y)
+    return X_resampled, y_resampled
+
+def init_preprocessing_methods(random_state = 1):
+    return [RandomOverSampler(random_state=random_state), SMOTE(), ADASYN(),
+                     RandomUnderSampler(random_state=random_state), EditedNearestNeighbours(random_state=random_state),
+                     CondensedNearestNeighbour(random_state=random_state), AllKNN(random_state=random_state),
+                     RepeatedEditedNearestNeighbours(random_state=random_state),
+                     SMOTEENN(random_state=random_state), SMOTETomek(random_state=random_state)]
+
+# stream_names = ["stream_gen_10k_0.20_1_f6_normal", "stream_gen_10k_0.20_5_f6_uniform"]
 # stream_names = ["elecNormNew"]
+stream_names = ["stream_gen_10k_0.20_1_f6_normal"]
 read_streams(stream_names)
