@@ -7,7 +7,7 @@ import h_ensemble
 
 class StremLearn():
     def __init__(self, classifier, preprocessing_methods, preprocessing_methods_names, stream_name, chunk_size = 500):
-        self.ensemble = h_ensemble
+        self.ensemble = h_ensemble.HomogeneousEnsemble(classifier, preprocessing_methods)
         self.classifier = classifier
         self.preprocessing_methods = preprocessing_methods
         self.preprocessing_methods_names = preprocessing_methods_names
@@ -40,8 +40,9 @@ class StremLearn():
         for i in tqdm(range(number_of_samples // self.chunk_size), desc='CHN', ascii=True):
             start = i * self.chunk_size
             end = start + self.chunk_size
-            print("chunk number: ", i, " | start: ", start, " | end: ", end)
+            # print("chunk number: ", i, " | start: ", start, " | end: ", end)
             chunk_X, chunk_y = self.getChunk(X, y, start, end)
+            self.ensemble.partial_fit(chunk_X, chunk_y)
             # self.test_preprocessing(chunk_X, chunk_y)
 
     def test_preprocessing(self, X, y):
