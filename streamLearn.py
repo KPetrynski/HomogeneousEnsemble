@@ -42,15 +42,14 @@ class StremLearn():
             end = start + self.chunk_size
             print("chunk number: ", i, " | start: ", start, " | end: ", end)
             chunk_X, chunk_y = self.getChunk(X, y, start, end)
+            # self.test_preprocessing(chunk_X, chunk_y)
 
-            # preprocessing(chunk_X, chunk_y)
-
-    def test_preprocessing(self, method_name, X, y):
+    def test_preprocessing(self, X, y):
         print("\n\n !!!! original: !!!")
         self.print_data_classes_percentage(y)
-        for i in range(len(self.method_array)):
-            X_resampled, y_resampled = self.method_array[i].fit_sample(X, y)
-            print("--------------------------------------- \npreprocessed - ", method_name[i])
+        for i in range(len(self.preprocessing_methods)):
+            X_resampled, y_resampled = self.preprocessing_methods[i].fit_sample(X, y)
+            print("--------------------------------------- \npreprocessed - ", self.preprocessing_methods_names[i])
             self.print_data_classes_percentage(y_resampled)
 
     def run(self):

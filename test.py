@@ -16,8 +16,8 @@ def preprocessingTomek(self, X, y):
     X_resampled, y_resampled = smote_tomek.fit_sample(X, y)
     return X_resampled, y_resampled
 
-def run(stream_name):
-    streamLearner = sl.StremLearn(neural_network.MLPClassifier, methods, methods_names, stream_name)
+def run(stream_name, chunk_size):
+    streamLearner = sl.StremLearn(neural_network.MLPClassifier, methods, methods_names, stream_name, chunk_size=chunk_size)
     streamLearner.run()
 
 # consider also: []EditedNearestNeighbours(), CondensedNearestNeighbour(), AllKNN(), RepeatedEditedNearestNeighbours(),
@@ -35,4 +35,5 @@ methods_names = ["O-ROS", "O-SMOTE", "O-ADASYN", "U-RUS", "M-SMOTEENN", "M-SMOTE
 # stream_names = ["elecNormNew"]
 stream_names = ["stream_gen_10k_0.20_1_f6_normal"]
 
-run(stream_names[0])
+chunk_size = 1000
+run(stream_names[0], chunk_size)
