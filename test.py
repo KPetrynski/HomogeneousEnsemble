@@ -1,10 +1,10 @@
-import streamLearn as sl
-import h_ensemble
-from imblearn.over_sampling import RandomOverSampler, SMOTE, ADASYN
-from imblearn.under_sampling import RandomUnderSampler, EditedNearestNeighbours, CondensedNearestNeighbour, AllKNN, \
-    RepeatedEditedNearestNeighbours
 from imblearn.combine import SMOTEENN, SMOTETomek
+from imblearn.over_sampling import RandomOverSampler, SMOTE, ADASYN
+from imblearn.under_sampling import RandomUnderSampler
 from sklearn import neural_network
+
+import streamLearn as sl
+
 
 def learnMLP(X, y):
     clf = neural_network.MLPClassifier()
@@ -16,9 +16,12 @@ def preprocessingTomek(self, X, y):
     X_resampled, y_resampled = smote_tomek.fit_sample(X, y)
     return X_resampled, y_resampled
 
+
 def run(stream_name, chunk_size):
-    streamLearner = sl.StremLearn(neural_network.MLPClassifier(), methods, methods_names, stream_name, chunk_size=chunk_size)
+    streamLearner = sl.StremLearn(neural_network.MLPClassifier(), methods, methods_names, stream_name,
+                                  chunk_size=chunk_size)
     streamLearner.run()
+
 
 # consider also: []EditedNearestNeighbours(), CondensedNearestNeighbour(), AllKNN(), RepeatedEditedNearestNeighbours(),
 # "U-ENN", "U-CNN", "U-ALLKNN", "U-RENN",

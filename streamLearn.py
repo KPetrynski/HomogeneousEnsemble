@@ -1,18 +1,19 @@
-import numpy as np
-import pandas as pd
 import arff
+import numpy as np
 from tqdm import tqdm
+
 import h_ensemble
 
 
 class StremLearn():
-    def __init__(self, classifier, preprocessing_methods, preprocessing_methods_names, stream_name, chunk_size = 500):
+    def __init__(self, classifier, preprocessing_methods, preprocessing_methods_names, stream_name, chunk_size=500):
         self.ensemble = h_ensemble.HomogeneousEnsemble(classifier, preprocessing_methods)
         self.classifier = classifier
         self.preprocessing_methods = preprocessing_methods
         self.preprocessing_methods_names = preprocessing_methods_names
         self.stream_name = stream_name
         self.chunk_size = chunk_size
+        self.scores = []
 
     # Here we have X and y
     def read_streams(self):
@@ -43,7 +44,9 @@ class StremLearn():
             # print("chunk number: ", i, " | start: ", start, " | end: ", end)
             chunk_X, chunk_y = self.getChunk(X, y, start, end)
             self.ensemble.partial_fit(chunk_X, chunk_y)
-            # self.test_preprocessing(chunk_X, chunk_y)
+            score = self.ensemble.get_score(X, y)
+            self.scores.append(score)
+        print("scores: ", self.scores)
 
     def test_preprocessing(self, X, y):
         print("\n\n !!!! original: !!!")
