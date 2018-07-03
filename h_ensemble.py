@@ -45,11 +45,15 @@ class HomogeneousEnsemble():
     def learn_classifiers(self, X, y):
         for i in range(self.number_of_classifiers):
             cls = self.classifiers[i]
-            resampled_X, resampled_y = self.preprocessing_methods[i].fit_sample(X, y)
-            classes = np.unique(y)
-            cls._partial_fit(resampled_X, resampled_y, classes)
-            y_pred = cls.predict(X)
-            weight = cls.score(X, y)
+            try:
+                resampled_X, resampled_y = self.preprocessing_methods[i].fit_sample(X, y)
+                classes = np.unique(y)
+                cls._partial_fit(resampled_X, resampled_y, classes)
+                y_pred = cls.predict(X)
+                weight = cls.score(X, y)
+            except RuntimeError:
+                print("Runtime error - weight = 0")
+                weight = 0
             self.classifiers_weights[i] = weight
 
     def predict(self, X):

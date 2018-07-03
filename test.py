@@ -1,7 +1,7 @@
 from imblearn.combine import SMOTEENN, SMOTETomek
 from imblearn.over_sampling import RandomOverSampler, SMOTE, ADASYN
 from imblearn.under_sampling import RandomUnderSampler
-from sklearn import neural_network
+from sklearn import neural_network, naive_bayes
 
 import streamLearn as sl
 
@@ -34,9 +34,15 @@ methods = [RandomOverSampler(random_state=random_state), SMOTE(), ADASYN(),
 
 methods_names = ["O-ROS", "O-SMOTE", "O-ADASYN", "U-RUS", "M-SMOTEENN", "M-SMOTETOMEK"]
 
-# stream_names = ["stream_gen_10k_0.20_1_f6_normal", "stream_gen_10k_0.20_5_f6_uniform"]
-# stream_names = ["elecNormNew"]
-stream_names = ["stream_gen_10k_0.20_1_f6_normal"]
 
-chunk_size = 1000
-run(stream_names[0], chunk_size)
+classifiers = [neural_network.MLPClassifier(), naive_bayes.GaussianNB()]
+classifiers_names = ["MLP", "GNB"]
+stream_names = ["stream_gen_10k_0.20_1_f6_normal", "stream_gen_10k_0.20_5_f6_uniform"]
+chunk_small = 400
+chunk_big = 1000
+chunk_step = 100
+
+for chunk_size in range(chunk_small, chunk_big, chunk_step):
+    run(stream_name=stream_names[1], chunk_size=1000, classifier=classifiers[0],
+        classifier_name=classifiers_names[i])
+
