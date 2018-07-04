@@ -1,6 +1,7 @@
+import random
+
 import arff
 import numpy as np
-import random
 from tqdm import tqdm
 
 
@@ -81,6 +82,7 @@ def create_new_imbalanced_stream(name):
     X, y = run(name)
     save(X, y, name)
     print("Done")
+
 
 def run_and_save(name):
     X, y = run(name)
