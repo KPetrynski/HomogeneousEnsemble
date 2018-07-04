@@ -8,7 +8,8 @@ from sklearn.preprocessing import LabelEncoder
 
 class HomogeneousEnsemble():
     def __init__(self, classifier=neural_network.MLPClassifier(), preprocessing_methods=[],
-                 weight_method=metrics.recall_score):
+                 weight_method=metrics.recall_score, weights_evolution_speed=0.6,
+                 evaluation_weights_chunk_percentage=0.1):
         self.preprocessing_methods = preprocessing_methods
         self.number_of_classifiers = len(preprocessing_methods)
 
@@ -18,6 +19,14 @@ class HomogeneousEnsemble():
         self.label_encoder = None
         self.classes = None
         self.weight_method = weight_method
+        self.scores_acc = []
+        self.scores_kappa = []
+        self.weights_evolution_speed = weights_evolution_speed
+        self.evaluation_weights_chunk_percentage = evaluation_weights_chunk_percentage
+
+    def reset(self):
+        self.scores_kappa = []
+        self.scores_acc = []
 
     def prepare_classifier_array(self, classifier):
         for i in range(self.number_of_classifiers):
@@ -36,25 +45,36 @@ class HomogeneousEnsemble():
             self.label_encoder.fit(classes)
             self.classes = classes
 
-        # print("normal y: ", y)
         y = self.label_encoder.transform(y)
-        # print("encoder y: ", y)
         self.learn_classifiers(X, y)
-        self.predict(X)
+
+    def split_chunk(self, X, y):
+        sub_chunk_size = int(len(y) * self.evaluation_weights_chunk_percentage)
+        X_weight = X[0: sub_chunk_size]
+        y_weight = y[0: sub_chunk_size]
+        X_lern = X[sub_chunk_size:]
+        y_lern = y[sub_chunk_size:]
+        return X_lern, y_lern, X_weight, y_weight
+
+    def update_weights(self, weight, i):
+        old_weight = self.classifiers_weights[i]
+        new_weight = (old_weight + weight*self.weights_evolution_speed)/(1+self.weights_evolution_speed)
+        self.classifiers_weights[i] = new_weight
 
     def learn_classifiers(self, X, y):
+        classes = np.unique(y)
+        X_lern, y_lern, X_weight, y_weight = self.split_chunk(X, y)
+
         for i in range(self.number_of_classifiers):
             cls = self.classifiers[i]
             try:
-                resampled_X, resampled_y = self.preprocessing_methods[i].fit_sample(X, y)
-                classes = np.unique(y)
+                resampled_X, resampled_y = self.preprocessing_methods[i].fit_sample(X_lern, y_lern)
                 cls._partial_fit(resampled_X, resampled_y, classes)
-                y_pred = cls.predict(X)
-                weight = cls.score(X, y)
+                weight = cls.score(X_weight, y_weight)
             except RuntimeError:
-                print("Runtime error - weight = 0")
-                weight = 0
-            self.classifiers_weights[i] = weight
+                print("Runtime error - weight = 0.2")
+                weight = 0.2
+            self.update_weights(weight, i)
 
     def predict(self, X):
         predictions = np.asarray([clf.predict(X) for clf in self.classifiers]).T
@@ -69,3 +89,6 @@ class HomogeneousEnsemble():
         # (ii) second kappa_statistic
         y_pred = self.predict(X)
         return accuracy_score(y, y_pred), metrics.cohen_kappa_score(y, y_pred)
+
+    def get_final_scores(self):
+        return self.scores_acc, self.scores_kappa

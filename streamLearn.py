@@ -39,17 +39,21 @@ class StremLearn():
         chunk_y = y[start:end]
         return chunk_X, chunk_y
 
-    def chunkData(self, X, y):
+    def first_training(self, X, y):
+        chunk_X, chunk_y = self.getChunk(X, y, 0, self.chunk_size)
+        self.ensemble.partial_fit(chunk_X, chunk_y)
+
+    def test_and_train(self, X, y):
         number_of_samples = len(y)
-        for i in tqdm(range(number_of_samples // self.chunk_size), desc='CHN', ascii=True):
+        self.first_training(X, y)
+        for i in tqdm(range(1, number_of_samples // self.chunk_size), desc='CHN', ascii=True):
             start = i * self.chunk_size
             end = start + self.chunk_size
-            # print("chunk number: ", i, " | start: ", start, " | end: ", end)
             chunk_X, chunk_y = self.getChunk(X, y, start, end)
-            self.ensemble.partial_fit(chunk_X, chunk_y)
             score_acc, score_kappa = self.ensemble.get_score(X, y)
             self.scores_acc.append(score_acc)
             self.scores_kappa.append(score_kappa)
+            self.ensemble.partial_fit(chunk_X, chunk_y)
         self.print_scores()
 
     def test_preprocessing(self, X, y):
@@ -66,6 +70,7 @@ class StremLearn():
         print("cohen_kappa_score: ", self.scores_kappa)
 
     def run(self):
+        self.ensemble.reset()
         X, y = self.read_streams()
         self.print_data_classes_percentage(y)
-        self.chunkData(X, y)
+        self.test_and_train(X, y)

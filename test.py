@@ -41,8 +41,9 @@ stream_names = ["stream_gen_10k_0.20_1_f6_normal", "stream_gen_10k_0.20_5_f6_uni
 chunk_small = 400
 chunk_big = 1000
 chunk_step = 100
+chunk_size=1000
+# for chunk_size in range(chunk_small, chunk_big, chunk_step):
+#     run(stream_name=stream_names[1], chunk_size=1000, classifier=classifiers[0],
+#         classifier_name=classifiers_names[i])
 
-for chunk_size in range(chunk_small, chunk_big, chunk_step):
-    run(stream_name=stream_names[1], chunk_size=1000, classifier=classifiers[0],
-        classifier_name=classifiers_names[i])
-
+run(stream_name=stream_names[0], chunk_size=chunk_size)
