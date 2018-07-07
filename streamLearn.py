@@ -1,13 +1,15 @@
 import arff
 import numpy as np
 from tqdm import tqdm
+import debalancer
 
 import h_ensemble
 
 
 class StremLearn():
     def __init__(self, classifier, classifier_name, preprocessing_methods, preprocessing_methods_names, stream_name,
-                 chunk_size=500):
+                 test_number,
+                 chunk_size=500, number_of_neurons=100):
         self.ensemble = h_ensemble.HomogeneousEnsemble(classifier, preprocessing_methods)
         self.classifier = classifier
         self.classifier_name = classifier_name
@@ -17,6 +19,8 @@ class StremLearn():
         self.chunk_size = chunk_size
         self.scores_acc = []
         self.scores_kappa = []
+        self.test_number = test_number
+        self.number_of_neurons = number_of_neurons
 
     # Here we have X and y
     def read_streams(self):
@@ -55,6 +59,20 @@ class StremLearn():
             self.scores_kappa.append(score_kappa)
             self.ensemble.partial_fit(chunk_X, chunk_y)
         self.print_scores()
+        self.save_scores()
+
+    def prepare_score_string(self):
+        scores_string = '' + self.stream_name + ', chunk size: ' + str(self.chunk_size) + ', neurons: ' \
+                        + str(self.number_of_neurons) + "\n"
+        scores_string = scores_string + 'KAPPA, ' + str(self.scores_kappa) + '\n'
+        scores_string = scores_string + 'ACC, ' + str(self.scores_acc) + '\n'
+        return scores_string
+
+    def save_scores(self):
+        score_string = self.prepare_score_string()
+        test_name = 'res_' + self.stream_name + str(self.chunk_size) + str(self.number_of_neurons)
+        with open('results/%s.arff' % test_name, 'w') as stream:
+            stream.write(score_string)
 
     def test_preprocessing(self, X, y):
         print("\n\n !!!! original: !!!")
@@ -69,8 +87,11 @@ class StremLearn():
         print("accuracy_score: ", self.scores_acc)
         print("cohen_kappa_score: ", self.scores_kappa)
 
-    def run(self):
+    def run(self, m_X, m_y):
         self.ensemble.reset()
-        X, y = self.read_streams()
+        print("start")
+        # X, y = self.read_streams()
+        X = m_X
+        y = m_y
         self.print_data_classes_percentage(y)
         self.test_and_train(X, y)
