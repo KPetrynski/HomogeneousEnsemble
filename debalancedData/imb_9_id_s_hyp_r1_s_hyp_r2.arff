@@ -1,3 +1,16 @@
+@relation 'generators.HyperplaneGenerator -a 7'
+
+@attribute att1 numeric
+@attribute att2 numeric
+@attribute att3 numeric
+@attribute att4 numeric
+@attribute att5 numeric
+@attribute att6 numeric
+@attribute att7 numeric
+@attribute class {class1,class2}
+
+@data
+
 0.583354,0.042298,0.761675,0.623973,0.879263,0.450218,0.004853,class1
 0.683527,0.48626,0.487515,0.126575,0.130209,0.206276,0.845656,class1
 0.233156,0.889909,0.038327,0.592379,0.655174,0.119839,0.652477,class1

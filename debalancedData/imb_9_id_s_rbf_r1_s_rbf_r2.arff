@@ -1,3 +1,16 @@
+@relation 'generators.RandomRBFGenerator -a 7 -n 25'
+
+@attribute att1 numeric
+@attribute att2 numeric
+@attribute att3 numeric
+@attribute att4 numeric
+@attribute att5 numeric
+@attribute att6 numeric
+@attribute att7 numeric
+@attribute class {class1,class2}
+
+@data
+
 0.985984,0.629376,0.15266,0.29592,0.340748,0.402017,0.622545,class2
 0.735314,0.150513,0.644851,0.929055,0.733566,0.231809,0.629005,class2
 0.89936,0.859367,0.253572,0.505306,0.165282,0.599871,0.155369,class2
