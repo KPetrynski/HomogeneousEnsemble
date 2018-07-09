@@ -2,7 +2,8 @@ import warnings
 
 import numpy as np
 from sklearn import neural_network, metrics
-from sklearn.metrics import accuracy_score
+from sklearn.metrics import accuracy_score, classification
+from sklearn.metrics.classification import balanced_accuracy_score
 from sklearn.preprocessing import LabelEncoder
 
 
@@ -21,12 +22,14 @@ class HomogeneousEnsemble():
         self.weight_method = weight_method
         self.scores_acc = []
         self.scores_kappa = []
+        self.scores_matthews_corrcoef = []
         self.weights_evolution_speed = weights_evolution_speed
         self.evaluation_weights_chunk_percentage = evaluation_weights_chunk_percentage
 
     def reset(self):
         self.scores_kappa = []
         self.scores_acc = []
+        self.scores_matthews_corrcoef = []
 
     def prepare_classifier_array(self, classifier):
         for i in range(self.number_of_classifiers):
@@ -39,7 +42,7 @@ class HomogeneousEnsemble():
             self.label_encoder = LabelEncoder()
             self.label_encoder.fit(y)
             self.classes = self.label_encoder.classes_
-            print("encoder classes: ", self.label_encoder.classes_)
+            # print("encoder classes: ", self.label_encoder.classes_)
         elif self.classes is None:
             self.label_encoder = LabelEncoder()
             self.label_encoder.fit(classes)
@@ -58,7 +61,7 @@ class HomogeneousEnsemble():
 
     def update_weights(self, weight, i):
         old_weight = self.classifiers_weights[i]
-        new_weight = (old_weight + weight*self.weights_evolution_speed)/(1+self.weights_evolution_speed)
+        new_weight = (old_weight + weight * self.weights_evolution_speed) / (1 + self.weights_evolution_speed)
         self.classifiers_weights[i] = new_weight
 
     def learn_classifiers(self, X, y):
@@ -85,10 +88,11 @@ class HomogeneousEnsemble():
 
     def get_score(self, X, y):
         # returns two elements:
-        # (i) first accuracy_score,
+        # (i) first balanced_accuracy_score,
         # (ii) second kappa_statistic
         y_pred = self.predict(X)
-        return accuracy_score(y, y_pred), metrics.cohen_kappa_score(y, y_pred)
+        return metrics.balanced_accuracy_score(y, y_pred), metrics.cohen_kappa_score(y, y_pred),\
+               metrics.matthews_corrcoef(y, y_pred)
 
     def get_final_scores(self):
         return self.scores_acc, self.scores_kappa

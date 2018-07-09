@@ -100,6 +100,7 @@ directory = "dataToDebalance"
 directory_to_save = 'debalancedData'
 minority_percentage_list = [33, 20, 9]
 data_names = get_files_names(directory)
+print("debalancer")
 for name in data_names:
     for minority_percentage in minority_percentage_list:
         run_and_save(directory, directory_to_save, name, minority_percentage)

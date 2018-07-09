@@ -4,18 +4,9 @@ from imblearn.under_sampling import RandomUnderSampler
 from sklearn import neural_network, naive_bayes
 import streamLearn as sl
 import numpy as np
+from os import listdir
+from os.path import isfile, join
 from multiprocessing.dummy import Pool as ThreadPool
-
-
-def learnMLP(X, y):
-    clf = neural_network.MLPClassifier()
-    clf.partial_fit(X, y)
-
-
-def preprocessingTomek(self, X, y):
-    smote_tomek = SMOTETomek(random_state=0)
-    X_resampled, y_resampled = smote_tomek.fit_sample(X, y)
-    return X_resampled, y_resampled
 
 
 def run(stream_name, chunk_size, test_number, neurons_in_layer, prep_methods, prep_methods_names, m_X, m_y,
@@ -51,19 +42,6 @@ def save_score_csv(name, chunk_sizes, balanced_acc, kappa, matthews_corrcoef, di
                X=score_matrix)
 
 
-def run_for_stream_chunk(s_name):
-    score_averages_balanced_acc = []
-    score_averages_kappa = []
-    score_averages_mathew = []
-    for chunk_size in chunks_sizes:
-        balanced, kappa, mathew = read_and_run(s_name, chunk_size, test_num, neurons, methods, methods_names)
-        score_averages_balanced_acc.append(balanced)
-        score_averages_kappa.append(kappa)
-        score_averages_mathew.append(mathew)
-    save_score_csv(s_name, chunks_sizes, score_averages_balanced_acc, score_averages_kappa, score_averages_mathew)
-    return [score_averages_balanced_acc, score_averages_kappa, score_averages_mathew]
-
-
 def save_score_csv_neurons(name, neurons, balanced_acc, kappa, matthews_corrcoef, directory="results_neurons_number"):
     score_label = "number of neurons, balanced accuracy, cohen kappa, matthews corrcoef"
 
@@ -88,9 +66,11 @@ def run_for_stream_neurons(s_name, neurons, chunk_size, test_num=1, directory="r
                            directory)
     return [score_averages_balanced_acc, score_averages_kappa, score_averages_mathew]
 
+def get_files_names(directory):
+    data_set_names = [f for f in listdir("%s/" % directory) if isfile(join("%s/" % directory, f))]
+    print(data_set_names)
+    return data_set_names
 
-# consider also: []EditedNearestNeighbours(), CondensedNearestNeighbour(), AllKNN(), RepeatedEditedNearestNeighbours(),
-# "U-ENN", "U-CNN", "U-ALLKNN", "U-RENN",
 
 m_random_state = 1
 
@@ -102,21 +82,12 @@ methods_names = ["O-ROS", "O-SMOTE", "O-ADASYN", "U-RUS", "M-SMOTEENN", "M-SMOTE
 
 m_stream_names = ["s_hyp_r1", "s_hyp_r2", "s_rbf_r2", "id_s_hyp_r2_s_hyp_r3",
                   "sd_s_hyp_r2_s_rbf_r2"]
-# chunk_small = 400
-# chunk_big = 500
-# chunk_step = 100
-# Max value of neurons = 918, if there is more neurons, an error occurs
-m_neurons = [10, 50, 100, 250, 500, 750, 918]
-# m_neurons = [918, 1000, 1500, 5000, 10000]
+
+m_neuron = 100
 m_test_num = 1
 m_chunk_size = 1500
-# m_chunks_sizes = [250, 500, 750, 1000, 1500, 2000, 3000, 4000, 4500, 5000, 5500, 7000]
-# neurons_sizes = [50, 100, 500]
-
-
-
-# "imb_9_sd_s_rbf_r1_s_rbf_r3", "imb_20_sd_s_rbf_r1_s_rbf_r3","imb_33_sd_s_rbf_r1_s_rbf_r3", "imb_9_sd_s_hyp_r1_s_hyp_r3", "imb_20_sd_s_hyp_r1_s_hyp_r3",
-m_n_str = ["imb_20_sd_s_rbf_r1_s_rbf_r3", "imb_20_sd_s_hyp_r1_s_hyp_r3"]
+m_directory = "debalancedData"
+m_n_str = get_files_names(m_directory)
 # pool = ThreadPool(4)
 # results = pool.map(run_for_stream, n_str)
 # print(results)

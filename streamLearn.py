@@ -1,7 +1,6 @@
 import arff
 import numpy as np
 from tqdm import tqdm
-import debalancer
 
 import h_ensemble
 
@@ -19,12 +18,13 @@ class StremLearn():
         self.chunk_size = chunk_size
         self.scores_acc = []
         self.scores_kappa = []
+        self.scores_matthews_corrcoef = []
         self.test_number = test_number
         self.number_of_neurons = number_of_neurons
 
     # Here we have X and y
     def read_streams(self):
-        with open('dataSets/%s.arff' % self.stream_name, 'r') as stream:
+        with open('debalancedData/%s.arff' % self.stream_name, 'r') as stream:
             dataset = arff.load(stream)
             data = np.array(dataset['data'])
             X = data[:, :-1].astype(np.float)
@@ -54,12 +54,15 @@ class StremLearn():
             start = i * self.chunk_size
             end = start + self.chunk_size
             chunk_X, chunk_y = self.getChunk(X, y, start, end)
-            score_acc, score_kappa = self.ensemble.get_score(X, y)
+            score_acc, score_kappa, score_matthews_corrcoef = self.ensemble.get_score(X, y)
             self.scores_acc.append(score_acc)
             self.scores_kappa.append(score_kappa)
+            self.scores_matthews_corrcoef.append(score_matthews_corrcoef)
             self.ensemble.partial_fit(chunk_X, chunk_y)
-        self.print_scores()
-        self.save_scores()
+        # self.print_scores()
+        self.save_score_csv()
+        a, b, c = self.get_score_averages()
+        # self.save_scores()
 
     def prepare_score_string(self):
         scores_string = '' + self.stream_name + ', chunk size: ' + str(self.chunk_size) + ', neurons: ' \
@@ -67,6 +70,26 @@ class StremLearn():
         scores_string = scores_string + 'KAPPA, ' + str(self.scores_kappa) + '\n'
         scores_string = scores_string + 'ACC, ' + str(self.scores_acc) + '\n'
         return scores_string
+
+    def save_score_csv(self):
+        score_label = "elements, balanced_accuracy_score, cohen_kappa_score, matthews_corrcoef"
+        balanced_acc = np.asarray(self.scores_acc)
+        kappa = np.asarray(self.scores_kappa)
+        matthews_corrcoef = np.asarray(self.scores_matthews_corrcoef)
+        range = np.arange(self.chunk_size, (len(balanced_acc) + 1) * self.chunk_size, self.chunk_size)
+        score_matrix = np.stack((range, balanced_acc, kappa, matthews_corrcoef), axis=-1)
+        file_name = 'results_neurons_number/%s_neurons_%s' %(self.stream_name, str(self.number_of_neurons))
+        np.savetxt(file_name,
+                   fmt="%i, %f, %f, %f",
+                   header=score_label,
+                   X=score_matrix)
+
+    def get_score_averages(self):
+        balanced_acc = np.average(self.scores_acc)
+        kappa = np.average(self.scores_kappa)
+        matthews_corrcoef = np.average(self.scores_matthews_corrcoef)
+        # print("average: ", balanced_acc, kappa, matthews_corrcoef)
+        return balanced_acc, kappa, matthews_corrcoef
 
     def save_scores(self):
         score_string = self.prepare_score_string()
@@ -86,12 +109,18 @@ class StremLearn():
         print("Classifier: ", self.classifier_name, ", Chunk size: ", self.chunk_size)
         print("accuracy_score: ", self.scores_acc)
         print("cohen_kappa_score: ", self.scores_kappa)
+        print("scores_matthews_corrcoef ", self.scores_matthews_corrcoef)
 
     def run(self, m_X, m_y):
         self.ensemble.reset()
-        print("start")
         # X, y = self.read_streams()
         X = m_X
         y = m_y
         self.print_data_classes_percentage(y)
+        self.test_and_train(X, y)
+
+    def read_and_run(self):
+        self.ensemble.reset()
+        X, y = self.read_streams()
+        # self.print_data_classes_percentage(y)
         self.test_and_train(X, y)
