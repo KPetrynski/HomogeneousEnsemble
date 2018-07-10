@@ -2,14 +2,12 @@ import warnings
 
 import numpy as np
 from sklearn import neural_network, metrics
-from sklearn.metrics import accuracy_score, classification
-from sklearn.metrics.classification import balanced_accuracy_score
 from sklearn.preprocessing import LabelEncoder
 
 
 class HomogeneousEnsemble():
     def __init__(self, classifier=neural_network.MLPClassifier(), preprocessing_methods=[],
-                 weight_method=metrics.recall_score, weights_evolution_speed=0.6,
+                 weight_method=metrics.recall_score, weights_evolution_speed=0.85,
                  evaluation_weights_chunk_percentage=0.1):
         self.preprocessing_methods = preprocessing_methods
         self.number_of_classifiers = len(preprocessing_methods)
@@ -91,7 +89,7 @@ class HomogeneousEnsemble():
         # (i) first balanced_accuracy_score,
         # (ii) second kappa_statistic
         y_pred = self.predict(X)
-        return metrics.balanced_accuracy_score(y, y_pred), metrics.cohen_kappa_score(y, y_pred),\
+        return metrics.balanced_accuracy_score(y, y_pred), metrics.cohen_kappa_score(y, y_pred), \
                metrics.matthews_corrcoef(y, y_pred)
 
     def get_final_scores(self):

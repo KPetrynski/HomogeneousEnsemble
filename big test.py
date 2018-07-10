@@ -30,19 +30,8 @@ def read_and_run(stream_name, chunk_size, test_number, neurons_in_layer, prep_me
     return streamLearner.get_score_averages()
 
 
-def save_score_csv(name, chunk_sizes, balanced_acc, kappa, matthews_corrcoef, directory="results_chunk_size"):
-    # score_label = "chunk_sizes, balanced accuracy, cohen kappa, matthews corrcoef"
-    score_label = "number of neurons, balanced accuracy, cohen kappa, matthews corrcoef"
 
-    score_matrix = np.stack((chunk_sizes, balanced_acc, kappa, matthews_corrcoef), axis=-1)
-    file_name = '%s/aver_chunk_score_%s' % (directory, name)
-    np.savetxt(file_name,
-               fmt="%i, %f, %f, %f",
-               header=score_label,
-               X=score_matrix)
-
-
-def save_score_csv_neurons(name, neurons, balanced_acc, kappa, matthews_corrcoef, directory="results_neurons_number"):
+def save_score_csv(name, neurons, balanced_acc, kappa, matthews_corrcoef, directory="results_neurons_number"):
     score_label = "number of neurons, balanced accuracy, cohen kappa, matthews corrcoef"
 
     score_matrix = np.stack((neurons, balanced_acc, kappa, matthews_corrcoef), axis=-1)
@@ -53,17 +42,15 @@ def save_score_csv_neurons(name, neurons, balanced_acc, kappa, matthews_corrcoef
                X=score_matrix)
 
 
-def run_for_stream_neurons(s_name, neurons, chunk_size, test_num=1, directory="results_neurons_number"):
+def run_for_stream(s_name, neurons, chunk_size, test_num=1, directory="results_neurons_number"):
     score_averages_balanced_acc = []
     score_averages_kappa = []
     score_averages_mathew = []
-    for n_neurons in neurons:
-        balanced, kappa, mathew = read_and_run(s_name, chunk_size, test_num, n_neurons, methods, methods_names)
-        score_averages_balanced_acc.append(balanced)
-        score_averages_kappa.append(kappa)
-        score_averages_mathew.append(mathew)
-    save_score_csv_neurons(s_name, neurons, score_averages_balanced_acc, score_averages_kappa, score_averages_mathew,
-                           directory)
+    balanced, kappa, mathew = read_and_run(s_name, chunk_size, test_num, n_neurons, methods, methods_names)
+    score_averages_balanced_acc.append(balanced)
+    score_averages_kappa.append(kappa)
+    score_averages_mathew.append(mathew)
+
     return [score_averages_balanced_acc, score_averages_kappa, score_averages_mathew]
 
 def get_files_names(directory):
@@ -80,16 +67,14 @@ methods = [RandomOverSampler(random_state=m_random_state), SMOTE(), ADASYN(),
 
 methods_names = ["O-ROS", "O-SMOTE", "O-ADASYN", "U-RUS", "M-SMOTEENN", "M-SMOTETOMEK"]
 
-m_stream_names = ["s_hyp_r1", "s_hyp_r2", "s_rbf_r2", "id_s_hyp_r2_s_hyp_r3",
-                  "sd_s_hyp_r2_s_rbf_r2"]
-
 m_neuron = 100
 m_test_num = 1
 m_chunk_size = 1500
+m_smoke_param = 0.8
 m_directory = "debalancedData"
 m_n_str = get_files_names(m_directory)
 # pool = ThreadPool(4)
 # results = pool.map(run_for_stream, n_str)
 # print(results)
 for name in m_n_str:
-    run_for_stream_neurons(name, m_neurons, m_chunk_size)
+    read_and_run(name, m_neuron, m_chunk_size)
