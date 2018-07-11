@@ -8,7 +8,7 @@ from sklearn.preprocessing import LabelEncoder
 class HomogeneousEnsemble():
     def __init__(self, classifier=neural_network.MLPClassifier(), preprocessing_methods=[],
                  weight_method=metrics.recall_score, weights_evolution_speed=1,
-                 evaluation_weights_chunk_percentage=0.1, is_with_weights=False):
+                 evaluation_weights_chunk_percentage=0.1):
         self.preprocessing_methods = preprocessing_methods
         self.number_of_classifiers = len(preprocessing_methods)
 
@@ -23,7 +23,6 @@ class HomogeneousEnsemble():
         self.scores_matthews_corrcoef = []
         self.weights_evolution_speed = weights_evolution_speed
         self.evaluation_weights_chunk_percentage = evaluation_weights_chunk_percentage
-        self.is_with_weights = is_with_weights
 
     def reset(self):
         self.scores_kappa = []
@@ -33,7 +32,7 @@ class HomogeneousEnsemble():
     def prepare_classifier_array(self, classifier):
         for i in range(self.number_of_classifiers):
             self.classifiers.append(classifier)
-            self.classifiers_weights.append(1)
+            self.classifiers_weights.append(0.5)
 
     def partial_fit(self, X, y, classes=None):
         warnings.filterwarnings(action='ignore', category=DeprecationWarning)
@@ -60,11 +59,10 @@ class HomogeneousEnsemble():
             print("----------------------- X_lern = %s, Y_learn = %s, sub_chunk_size = %s" % (X_learn, y_learn, sub_chunk_size))
         return X_learn, y_learn, X_weight, y_weight
 
-    def update_weights(self, weight, i, is_with_weights):
-        if self.is_with_weights:
-            old_weight = self.classifiers_weights[i]
-            new_weight = (old_weight + weight * self.weights_evolution_speed) / (1 + self.weights_evolution_speed)
-            self.classifiers_weights[i] = new_weight
+    def update_weights(self, weight, i):
+        old_weight = self.classifiers_weights[i]
+        new_weight = (old_weight + weight * self.weights_evolution_speed) / (1 + self.weights_evolution_speed)
+        self.classifiers_weights[i] = new_weight
 
     def learn_classifiers(self, X, y):
         classes = np.unique(y)
@@ -75,14 +73,11 @@ class HomogeneousEnsemble():
             try:
                 resampled_X, resampled_y = self.preprocessing_methods[i].fit_sample(X_learn, y_learn)
                 cls._partial_fit(resampled_X, resampled_y, classes)
-                if self.is_with_weights:
-                    weight = cls.score(X_weight, y_weight)
-                    self.update_weights(weight, i)
-            except (RuntimeError, ValueError) as e:
+                weight = cls.score(X_weight, y_weight)
+            except (RuntimeError) as e:
                 print("error - weight = 0.1, exception: ", e)
-                if self.is_with_weights:
-                    weight = 0.1
-                    self.update_weights(weight, i)
+                weight = 0.1
+            self.update_weights(weight, i)
 
     def predict(self, X):
         predictions = np.asarray([clf.predict(X) for clf in self.classifiers]).T
@@ -92,6 +87,9 @@ class HomogeneousEnsemble():
         return (y_pred)
 
     def get_score(self, X, y):
+        # returns two elements:
+        # (i) first balanced_accuracy_score,
+        # (ii) second kappa_statistic
         y_pred = self.predict(X)
         return metrics.balanced_accuracy_score(y, y_pred), metrics.cohen_kappa_score(y, y_pred), \
                metrics.matthews_corrcoef(y, y_pred)

@@ -1,18 +1,16 @@
 import arff
 import numpy as np
+from tqdm import tqdm
 
 import h_ensemble
-import utils as ut
-from tqdm import tqdm
+from utils import get_chunk
 
 
 class StremLearn():
     def __init__(self, classifier, classifier_name, preprocessing_methods, preprocessing_methods_names, stream_name,
-                 init_chunk=1000, prediction_step=750, smoke_weight_param=1, chunk_size=500, number_of_neurons=100,
-                 directory="debalancedData", step=50, is_with_weights=False):
+                 smoke_weight_param=1, chunk_size=500, number_of_neurons=100, directory="debalancedData"):
         self.ensemble = h_ensemble.HomogeneousEnsemble(classifier, preprocessing_methods,
-                                                       weights_evolution_speed=smoke_weight_param,
-                                                       is_with_weights=False)
+                                                       weights_evolution_speed=smoke_weight_param)
         self.classifier = classifier
         self.classifier_name = classifier_name
         self.preprocessing_methods = preprocessing_methods
@@ -25,11 +23,6 @@ class StremLearn():
         self.number_of_neurons = number_of_neurons
         self.smoke_weight_param = smoke_weight_param
         self.directory = directory
-        self.init_chunk = init_chunk
-        self.stream_range_prediction = []
-        self.stream_range_learning = []
-        self.prediction_step = prediction_step
-        self.step = step
 
     def read_streams(self):
         with open('%s/%s' % (self.directory, self.stream_name), 'r') as stream:
@@ -40,39 +33,24 @@ class StremLearn():
         return X, y
 
     def first_training(self, X, y):
-        chunk_X, chunk_y = ut.get_chunk(X, y, 0, self.init_chunk)
+        chunk_X, chunk_y = get_chunk(X, y, 0, self.chunk_size)
         self.ensemble.partial_fit(chunk_X, chunk_y)
 
     def test_and_train(self, X, y):
         number_of_samples = len(y)
         self.first_training(X, y)
-        accumulation_prediction = 0
-        accumulation_learning = 0
-        stream_range_calculations = np.arange(self.init_chunk, number_of_samples + 1, self.step)
-
-        for element in tqdm(stream_range_calculations):
-            if accumulation_prediction >= self.prediction_step:
-                self.stream_range_prediction.append(element)
-                start = element - self.prediction_step
-                end = element
-                chunk_X, chunk_y = ut.get_chunk(X, y, start, end)
-                score_acc, score_kappa, score_matthews_corrcoef = self.ensemble.get_score(chunk_X, chunk_y)
-                self.scores_acc.append(score_acc)
-                self.scores_kappa.append(score_kappa)
-                self.scores_matthews_corrcoef.append(score_matthews_corrcoef)
-                accumulation_prediction = 0
-
-            if accumulation_learning >= self.chunk_size:
-                start = element - self.chunk_size
-                end = element
-                chunk_X, chunk_y = ut.get_chunk(X, y, start, end)
-                self.ensemble.partial_fit(chunk_X, chunk_y)
-                accumulation_learning = 0
-            accumulation_prediction += self.step
-            accumulation_learning += self.step
+        for i in tqdm(range(1, number_of_samples // self.chunk_size), desc='CHN', ascii=True):
+            start = i * self.chunk_size
+            end = start + self.chunk_size
+            chunk_X, chunk_y = get_chunk(X, y, start, end)
+            score_acc, score_kappa, score_matthews_corrcoef = self.ensemble.get_score(X, y)
+            self.scores_acc.append(score_acc)
+            self.scores_kappa.append(score_kappa)
+            self.scores_matthews_corrcoef.append(score_matthews_corrcoef)
+            self.ensemble.partial_fit(chunk_X, chunk_y)
 
     def get_scores(self):
-        return self.scores_acc, self.scores_kappa, self.scores_matthews_corrcoef, self.stream_range_prediction
+        return self.scores_acc, self.scores_kappa, self.scores_matthews_corrcoef
 
     def get_score_averages(self):
         balanced_acc = np.average(self.scores_acc)
