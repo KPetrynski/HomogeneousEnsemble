@@ -5,6 +5,7 @@ from imblearn.under_sampling import RandomUnderSampler
 import test_chunk_size
 import test_number_of_neurons
 import test_smoke_param
+import big_test
 
 
 def run_chunk_size_test():
@@ -29,13 +30,21 @@ def run_smoke_params_test():
     test_smoke_param.start(m_methods, m_methods_names, m_streams_names, m_smoke_params, chunk_size, neurons)
 
 
+def run_big_test():
+    chunk_size = 600
+    neurons = 750
+    m_smoke_param = 0.75
+    big_test.start(m_methods, m_methods_names, m_streams_names, m_smoke_param, chunk_size, neurons)
+
+
 m_random_state = 1
 m_methods = [RandomOverSampler(random_state=m_random_state), SMOTE(), ADASYN(),
              RandomUnderSampler(random_state=m_random_state),
              SMOTEENN(random_state=m_random_state), SMOTETomek(random_state=m_random_state)]
 m_methods_names = ["O-ROS", "O-SMOTE", "O-ADASYN", "U-RUS", "M-SMOTEENN", "M-SMOTETOMEK"]
-m_streams_names = ["imb_9_sd_s_hyp_r1_s_hyp_r3.arff", "imb_33_sd_s_hyp_r1_s_hyp_r3.arff",
-                   "imb_9_sd_s_rbf_r1_s_rbf_r3.arff", "imb_33_sd_s_rbf_r1_s_rbf_r3.arff"]
+# m_streams_names = ["imb_9_sd_s_hyp_r1_s_hyp_r3.arff", "imb_33_sd_s_hyp_r1_s_hyp_r3.arff",
+#                    "imb_9_sd_s_rbf_r1_s_rbf_r3.arff", "imb_33_sd_s_rbf_r1_s_rbf_r3.arff"]
 # m_streams_names = ["imb_20_sd_s_rbf_r1_s_rbf_r3.arff", "imb_20_sd_s_hyp_r1_s_hyp_r3.arff"]
-# m_streams_names = []
-run_smoke_params_test()
+
+m_streams_names = ["imb_9_s_hyp_r3_small.arff", "imb_20_s_hyp_r2_small.arff"]
+run_big_test()

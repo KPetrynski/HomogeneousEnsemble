@@ -10,25 +10,25 @@ def get_files_names(directory):
 
 
 # ------------------ --average
-frame = [0.75, 0.9]
-width_param = 10
-height_param = 10
-legend_column = 2
-grid_x_step = 0.25
-grid_x_step_min = 0.05
+# frame = [0.5, 1]
+# width_param = 10
+# height_param = 10
+# legend_column = 2
+# grid_x_step = 500
+# grid_x_step_min = 250
 
 # --------------------- stream
-# frame = [0, 1]
-# width_param = 20
-# height_param = 10
-# legend_column = 3
-# grid_x_step = 10000
-# grid_x_step_min = 1000
+frame = [0.4, 1]
+width_param = 20
+height_param = 10
+legend_column = 3
+grid_x_step = 10000
+grid_x_step_min = 1000
 
-sub_directory = "all_average_score"
-end_name = "all_av_zoom"
-directory_from = "results_smoke_weights/" + sub_directory
-directory_to = "results_smoke_weights_plots/" + sub_directory
+sub_directory = "hyp"
+end_name = "hyp_zoom"
+directory_from = "results_chunk_size/" + sub_directory
+directory_to = "results_chunk_size_plots/" + sub_directory
 title = ["", "average balanced accuracy", "average cohen kappa", "average matthews corrcoef"]
 score_method_name = ["", "balanced accuracy", "cohen kappa", "matthews corrcoef"]
 x_label = "data stream"
