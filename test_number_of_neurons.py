@@ -32,9 +32,9 @@ def save_score_csv_average(s_name, neurons, balanced_acc, kappa, matthews_corrco
 
 def read_and_run(stream_name, chunk_size, prep_methods, prep_methods_names, neurons=100, smoke_param=1,
                  classifier_name="MLP", directory_to_save="results_neurons_number"):
-
     streamLearner = sl.StremLearn(None, classifier_name, prep_methods, prep_methods_names, stream_name,
-                                  smoke_weight_param=smoke_param, chunk_size=chunk_size, number_of_neurons=neurons)
+                                  smoke_weight_param=smoke_param, chunk_size=chunk_size, number_of_neurons=neurons,
+                                  score_name="hard_score")
     streamLearner.read_and_run()
     balanced_acc, kappa, matthews_corrcoef, stream_range = streamLearner.get_scores()
     save_scores_csv(balanced_acc, kappa, matthews_corrcoef, stream_range, stream_name, directory_to_save, neurons)

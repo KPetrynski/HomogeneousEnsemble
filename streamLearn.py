@@ -9,7 +9,7 @@ from tqdm import tqdm
 class StremLearn():
     def __init__(self, classifiers, classifier_name, preprocessing_methods, preprocessing_methods_names, stream_name,
                  init_chunk=1000, prediction_step=750, smoke_weight_param=1, chunk_size=500, number_of_neurons=100,
-                 directory="testDataSet", step=50, is_with_weights=False):
+                 directory="testDataSet", step=50, is_with_weights=False, score_name="hard_score"):
         self.ensemble = h_ensemble.HomogeneousEnsemble(classifiers, preprocessing_methods,
                                                        weights_evolution_speed=smoke_weight_param,
                                                        is_with_weights=False, neurons=number_of_neurons)
@@ -29,6 +29,7 @@ class StremLearn():
         self.stream_range_learning = []
         self.prediction_step = prediction_step
         self.step = step
+        self.score_name = score_name
 
     def read_streams(self):
         with open('%s/%s' % (self.directory, self.stream_name), 'r') as stream:
@@ -55,7 +56,8 @@ class StremLearn():
                 start = element - self.prediction_step
                 end = element
                 chunk_X, chunk_y = ut.get_chunk(X, y, start, end)
-                score_acc, score_kappa, score_matthews_corrcoef = self.ensemble.get_all_scores(chunk_X, chunk_y)
+                score_acc, score_kappa, score_matthews_corrcoef = self.ensemble.get_score(self.score_name, chunk_X,
+                                                                                          chunk_y)
                 self.scores_acc.append(score_acc)
                 self.scores_kappa.append(score_kappa)
                 self.scores_matthews_corrcoef.append(score_matthews_corrcoef)
@@ -73,11 +75,16 @@ class StremLearn():
     def get_scores(self):
         return self.scores_acc, self.scores_kappa, self.scores_matthews_corrcoef, self.stream_range_prediction
 
+    def get_score_averages(self):
+        balanced_acc = np.average(self.scores_acc)
+        kappa = np.average(self.scores_kappa)
+        matthews_corrcoef = np.average(self.scores_matthews_corrcoef)
+        return balanced_acc, kappa, matthews_corrcoef
+
     def get_all_score_averages(self):
         balanced_acc = []
         kappa = []
         matthews_corrcoef = []
-        print("get_all_score_averages acc: ", self.scores_acc)
         for column in range(np.asarray(self.scores_acc).shape[1]):
             balanced_acc.append(np.average(np.array(self.scores_acc)[:, column]))
             kappa.append(np.average(np.array(self.scores_kappa)[:, column]))

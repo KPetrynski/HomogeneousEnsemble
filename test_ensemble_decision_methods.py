@@ -24,7 +24,8 @@ def save_score_csv_average(s_name, results, directory="results", subdirectory="b
     print("save to: ", directory, "/", subdirectory)
     print(results)
     results = np.array(results)
-    score_matrix = np.stack((s_name, results[:, 0], results[:, 1], results[:, 2], results[:, 3], results[:, 4], results[:, 5]), axis=-1)
+    score_matrix = np.stack(
+        (s_name, results[:, 0], results[:, 1], results[:, 2], results[:, 3], results[:, 4], results[:, 5]), axis=-1)
     # results[:, 0], results[:, 1], results[:, 2], results[:, 3], results[:, 4], results[:, 5]
     print("czo ta maciez: \n", score_matrix)
     file_name = '%s/%s_av_all' % (directory, subdirectory)
@@ -36,10 +37,9 @@ def save_score_csv_average(s_name, results, directory="results", subdirectory="b
 
 def read_and_run(stream_name, chunk_size, prep_methods, prep_methods_names, neurons=750, smoke_param=0.75,
                  classifier_name="MLP", ):
-
     streamLearner = sl.StremLearn(None, classifier_name, prep_methods, prep_methods_names, stream_name,
                                   smoke_weight_param=smoke_param, chunk_size=chunk_size, number_of_neurons=neurons,
-                                  is_with_weights=True)
+                                  is_with_weights=True, score_name="all_scores")
     streamLearner.read_and_run()
     # balanced_acc, kappa, matthews_corrcoef, stream_range = streamLearner.get_scores()
     # save_scores_csv(balanced_acc, kappa, matthews_corrcoef, stream_range, stream_name, directory_to_save, smoke_param)
@@ -54,7 +54,7 @@ def start(m_methods, m_methods_names, m_streams_names, m_smoke_params=0.75, m_ch
 
     for m_name in m_streams_names:
         sc_balanced_acc, sc_kappa, sc_matthews = read_and_run(m_name, m_chunk_size, m_methods, m_methods_names,
-                                                             m_neurons, m_smoke_params)
+                                                              m_neurons, m_smoke_params)
         print("staart acc ", sc_balanced_acc)
         score_balanced_acc.append(sc_balanced_acc)
         score_kappa.append(sc_kappa)

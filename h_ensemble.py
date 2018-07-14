@@ -33,7 +33,6 @@ class HomogeneousEnsemble():
 
     def prepare_classifier_array(self, classifiers):
         if len(classifiers) < 1:
-            print("initializing classifiers")
             for i in range(self.number_of_classifiers):
                 self.classifiers.append(neural_network.MLPClassifier(hidden_layer_sizes=self.neurons))
 
@@ -124,8 +123,13 @@ class HomogeneousEnsemble():
         y_pred = self.label_encoder.inverse_transform(y_pred)
         return (y_pred)
 
-    def get_score(self, X, y):
-        y_pred = self.predict_hard(X, True, True)
+    def get_hard_smoke_score(self, X, y):
+        y_pred = self.predict_hard(X, False, True)
+        return metrics.balanced_accuracy_score(y, y_pred), metrics.cohen_kappa_score(y, y_pred), \
+               metrics.matthews_corrcoef(y, y_pred)
+
+    def get_hard_score(self, X, y):
+        y_pred = self.predict_hard(X, False, False)
         return metrics.balanced_accuracy_score(y, y_pred), metrics.cohen_kappa_score(y, y_pred), \
                metrics.matthews_corrcoef(y, y_pred)
 
@@ -147,3 +151,11 @@ class HomogeneousEnsemble():
             cohen_kappa_scores.append(metrics.cohen_kappa_score(y, y_pred))
             matthews_corrcoefs.append(metrics.matthews_corrcoef(y, y_pred))
         return balanced_acc_scores, cohen_kappa_scores, matthews_corrcoefs
+
+    def get_score(self, score_name, X, y):
+        if score_name is "all_scores":
+            return self.get_all_scores(X, y)
+        elif score_name is "hard_score":
+            return self.get_hard_score(X, y)
+        elif score_name is "hard_smoke_score":
+            return self.get_hard_smoke_score(X, y)
