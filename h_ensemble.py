@@ -14,7 +14,7 @@ class HomogeneousEnsemble():
 
         self.classifiers = classifiers
         self.classifiers_weights = []
-        self.prepare_classifier_array(classifiers)
+        self.neurons = neurons
         self.label_encoder = None
         self.classes = None
         self.weight_method = weight_method
@@ -24,7 +24,9 @@ class HomogeneousEnsemble():
         self.weights_evolution_speed = weights_evolution_speed
         self.evaluation_weights_chunk_percentage = evaluation_weights_chunk_percentage
         self.is_with_weights = is_with_weights
-        self.neurons = neurons
+
+        self.prepare_classifier_array(classifiers)
+        self.init_weights_array()
 
     def reset(self):
         self.scores_kappa = []
@@ -33,6 +35,7 @@ class HomogeneousEnsemble():
 
     def prepare_classifier_array(self, classifiers):
         if classifiers is None:
+            self.classifiers = []
             for i in range(self.number_of_classifiers):
                 self.classifiers.append(neural_network.MLPClassifier(hidden_layer_sizes=self.neurons))
 
