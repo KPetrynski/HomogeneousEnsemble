@@ -7,13 +7,12 @@ from tqdm import tqdm
 
 
 class StremLearn():
-    def __init__(self, classifier, classifier_name, preprocessing_methods, preprocessing_methods_names, stream_name,
+    def __init__(self, classifiers, classifier_name, preprocessing_methods, preprocessing_methods_names, stream_name,
                  init_chunk=1000, prediction_step=750, smoke_weight_param=1, chunk_size=500, number_of_neurons=100,
                  directory="debalancedData", step=50, is_with_weights=False):
-        self.ensemble = h_ensemble.HomogeneousEnsemble(classifier, preprocessing_methods,
+        self.ensemble = h_ensemble.HomogeneousEnsemble(classifiers, preprocessing_methods,
                                                        weights_evolution_speed=smoke_weight_param,
-                                                       is_with_weights=False)
-        self.classifier = classifier
+                                                       is_with_weights=False, neurons=number_of_neurons)
         self.classifier_name = classifier_name
         self.preprocessing_methods = preprocessing_methods
         self.preprocessing_methods_names = preprocessing_methods_names

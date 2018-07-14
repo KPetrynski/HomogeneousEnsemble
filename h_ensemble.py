@@ -6,15 +6,15 @@ from sklearn.preprocessing import LabelEncoder
 
 
 class HomogeneousEnsemble():
-    def __init__(self, classifier=neural_network.MLPClassifier(), preprocessing_methods=[],
+    def __init__(self, classifiers=None, preprocessing_methods=[],
                  weight_method=metrics.recall_score, weights_evolution_speed=1,
-                 evaluation_weights_chunk_percentage=0.1, is_with_weights=False):
+                 evaluation_weights_chunk_percentage=0.1, is_with_weights=False, neurons=100):
         self.preprocessing_methods = preprocessing_methods
         self.number_of_classifiers = len(preprocessing_methods)
 
-        self.classifiers = []
+        self.classifiers = classifiers
         self.classifiers_weights = []
-        self.prepare_classifier_array(classifier)
+        self.prepare_classifier_array(classifiers)
         self.label_encoder = None
         self.classes = None
         self.weight_method = weight_method
@@ -24,15 +24,20 @@ class HomogeneousEnsemble():
         self.weights_evolution_speed = weights_evolution_speed
         self.evaluation_weights_chunk_percentage = evaluation_weights_chunk_percentage
         self.is_with_weights = is_with_weights
+        self.neurons = neurons
 
     def reset(self):
         self.scores_kappa = []
         self.scores_acc = []
         self.scores_matthews_corrcoef = []
 
-    def prepare_classifier_array(self, classifier):
+    def prepare_classifier_array(self, classifiers):
+        if classifiers is None:
+            for i in range(self.number_of_classifiers):
+                self.classifiers.append(neural_network.MLPClassifier(hidden_layer_sizes=self.neurons))
+
+    def init_weights_array(self):
         for i in range(self.number_of_classifiers):
-            self.classifiers.append(classifier)
             self.classifiers_weights.append(1)
 
     def partial_fit(self, X, y, classes=None):

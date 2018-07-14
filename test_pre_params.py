@@ -1,7 +1,6 @@
 from imblearn.combine import SMOTEENN, SMOTETomek
 from imblearn.over_sampling import RandomOverSampler, SMOTE, ADASYN
 from imblearn.under_sampling import RandomUnderSampler
-from multiprocessing.dummy import Pool as ThreadPool
 
 import test_chunk_size
 import test_number_of_neurons
