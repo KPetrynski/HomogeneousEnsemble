@@ -36,6 +36,7 @@ def read_and_run(stream_name, chunk_size, prep_methods, prep_methods_names, neur
                                   smoke_weight_param=smoke_param, chunk_size=chunk_size, number_of_neurons=neurons,
                                   score_name="hard_score")
     streamLearner.read_and_run()
+    print("get scores")
     balanced_acc, kappa, matthews_corrcoef, stream_range = streamLearner.get_scores()
     save_scores_csv(balanced_acc, kappa, matthews_corrcoef, stream_range, stream_name, directory_to_save, neurons)
     return streamLearner.get_score_averages()
@@ -57,7 +58,7 @@ def run_for_stream_neurons(s_name, methods, methods_names, chunk_size, neurons_n
                            score_averages_mathew)
 
 
-def start(m_methods, m_methods_names, m_streams_names, m_neurons, m_chunk_size=600):
+def start(m_methods, m_methods_names, m_streams_names, m_neurons, m_chunk_size=200):
     # Max value of neurons = 918, if there is more neurons, an error occurs
     for m_name in m_streams_names:
         run_for_stream_neurons(m_name, m_methods, m_methods_names, m_chunk_size, m_neurons)

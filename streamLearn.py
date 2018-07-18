@@ -9,7 +9,7 @@ from tqdm import tqdm
 class StremLearn():
     def __init__(self, classifiers, classifier_name, preprocessing_methods, preprocessing_methods_names, stream_name,
                  init_chunk=1000, prediction_step=750, smoke_weight_param=1, chunk_size=500, number_of_neurons=100,
-                 directory="testDataSet", step=50, is_with_weights=False, score_name="hard_score"):
+                 directory="debalancedData", step=50, is_with_weights=False, score_name="hard_score"):
         self.ensemble = h_ensemble.HomogeneousEnsemble(classifiers, preprocessing_methods,
                                                        weights_evolution_speed=smoke_weight_param,
                                                        is_with_weights=False, neurons=number_of_neurons)
@@ -44,12 +44,14 @@ class StremLearn():
         self.ensemble.partial_fit(chunk_X, chunk_y)
 
     def test_and_train(self, X, y):
+        print("statr test and train")
         number_of_samples = len(y)
         self.first_training(X, y)
         accumulation_prediction = 0
         accumulation_learning = 0
         stream_range_calculations = np.arange(self.init_chunk, number_of_samples + 1, self.step)
 
+        # for element in stream_range_calculations:
         for element in tqdm(stream_range_calculations):
             if accumulation_prediction >= self.prediction_step:
                 self.stream_range_prediction.append(element)
@@ -71,6 +73,7 @@ class StremLearn():
                 accumulation_learning = 0
             accumulation_prediction += self.step
             accumulation_learning += self.step
+        print("stop test and train")
 
     def get_scores(self):
         return self.scores_acc, self.scores_kappa, self.scores_matthews_corrcoef, self.stream_range_prediction

@@ -63,10 +63,10 @@ class HomogeneousEnsemble():
 
     def split_chunk(self, X, y):
         sub_chunk_size = int(len(y) * self.evaluation_weights_chunk_percentage)
-        X_weight = X[0: sub_chunk_size]
-        y_weight = y[0: sub_chunk_size]
-        X_learn = X[sub_chunk_size:]
-        y_learn = y[sub_chunk_size:]
+        X_weight = X
+        y_weight = y
+        X_learn = X
+        y_learn = y
         if not len(X_learn) == len(y_learn):
             print("----------------------- X_lern = %s, Y_learn = %s, sub_chunk_size = %s" % (
                 X_learn, y_learn, sub_chunk_size))
@@ -75,8 +75,12 @@ class HomogeneousEnsemble():
     def update_weights(self, weight, i):
         self.classifiers_weights[i] = weight
         old_weight = self.classifiers_smoke_weights[i]
-        new_weight = (old_weight + weight * self.weights_evolution_speed) / (1 + self.weights_evolution_speed)
+        new_weight = (old_weight * (1 - self.weights_evolution_speed)) + (weight * self.weights_evolution_speed)
         self.classifiers_smoke_weights[i] = new_weight
+
+    def calculate_weight(self, y, y_pred):
+        weight = metrics.balanced_accuracy_score(y, y_pred)
+        return weight
 
     def learn_classifiers(self, X, y):
         classes = np.unique(y)
@@ -86,8 +90,8 @@ class HomogeneousEnsemble():
             # cls = self.classifiers[i]
             try:
                 resampled_X, resampled_y = self.preprocessing_methods[i].fit_sample(X_learn, y_learn)
-                self.classifiers[i]._partial_fit(resampled_X, resampled_y, classes)
-                weight = self.classifiers[i].score(X_weight, y_weight)
+                self.classifiers[i].partial_fit(resampled_X, resampled_y, classes)
+                weight = self.calculate_weight(y_weight, self.classifiers[i].predict(X_weight))
                 self.update_weights(weight, i)
             except (RuntimeError, ValueError) as e:
                 print("error - weight = 0.1, exception: ", e)
@@ -104,12 +108,14 @@ class HomogeneousEnsemble():
 
     def predict_hard(self, X, is_weight, is_smoke):
         weight = self.get_weights(is_weight, is_smoke)
-
+        # print(weight)
         predictions = np.asarray([clf.predict(X) for clf in self.classifiers]).T
+        # print(predictions[1:5])
         y_pred = np.apply_along_axis(lambda x: np.argmax(np.bincount(x, weights=weight)), axis=1,
                                      arr=predictions)
+        # print(y_pred[1:5])
         y_pred = self.label_encoder.inverse_transform(y_pred)
-        return (y_pred)
+        return y_pred
 
     def get_average_prediction(self, y_pred, weights):
         prediction = np.average(y_pred, weights=weights)
@@ -117,14 +123,23 @@ class HomogeneousEnsemble():
 
     def predict_soft(self, X, is_weight, is_smoke):
         weight = self.get_weights(is_weight, is_smoke)
+        # print(weight)
         predictions = np.asarray([clf.predict_proba(X)[:, 0] for clf in self.classifiers]).T
+        # print(predictions[1])
         y_pred = np.apply_along_axis(lambda x: self.get_average_prediction(x, weight), axis=1,
                                      arr=predictions)
+        # print(y_pred[1])
+        # print("------------------------------------)")
         y_pred = self.label_encoder.inverse_transform(y_pred)
-        return (y_pred)
+        return y_pred
 
     def get_hard_smoke_score(self, X, y):
         y_pred = self.predict_hard(X, False, True)
+        return metrics.balanced_accuracy_score(y, y_pred), metrics.cohen_kappa_score(y, y_pred), \
+               metrics.matthews_corrcoef(y, y_pred)
+
+    def get_soft_smoke_score(self, X, y):
+        y_pred = self.predict_soft(X, False, True)
         return metrics.balanced_accuracy_score(y, y_pred), metrics.cohen_kappa_score(y, y_pred), \
                metrics.matthews_corrcoef(y, y_pred)
 
@@ -153,9 +168,18 @@ class HomogeneousEnsemble():
         return balanced_acc_scores, cohen_kappa_scores, matthews_corrcoefs
 
     def get_score(self, score_name, X, y):
+        # print("get ", score_name)
         if score_name is "all_scores":
+            # print("hard_smoke_score ", score_name)
             return self.get_all_scores(X, y)
         elif score_name is "hard_score":
+            # print("hard_score ", score_name)
             return self.get_hard_score(X, y)
         elif score_name is "hard_smoke_score":
+            # print("hard_smoke_score ", score_name)
             return self.get_hard_smoke_score(X, y)
+        elif score_name is "soft_smoke_score":
+            # print("soft_smoke_score ", score_name)
+            return self.get_soft_smoke_score(X, y)
+        else:
+            print("wrong score name")

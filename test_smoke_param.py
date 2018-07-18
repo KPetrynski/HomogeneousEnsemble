@@ -20,7 +20,7 @@ def save_scores_csv(scores_acc, scores_kappa, scores_matthews_corrcoef, stream_r
 
 def save_score_csv_average(s_name, smoke_params, balanced_acc, kappa, matthews_corrcoef,
                            directory="results_smoke_weights"):
-    score_label = "neurons, balanced accuracy, cohen kappa, matthews corrcoef"
+    score_label = "smoke param, balanced accuracy, cohen kappa, matthews corrcoef"
 
     score_matrix = np.stack((smoke_params, balanced_acc, kappa, matthews_corrcoef), axis=-1)
     file_name = '%s/av_smoke_params_%s' % (directory, s_name)
@@ -52,12 +52,12 @@ def run_for_stream_smoke_weights(s_name, methods, methods_names, chunk_size, neu
         score_averages_balanced_acc.append(balanced_acc)
         score_averages_kappa.append(kappa)
         score_averages_mathew.append(mathew)
-
+    print("save")
     save_score_csv_average(s_name, smoke_params, score_averages_balanced_acc, score_averages_kappa,
                            score_averages_mathew)
 
 
 # Max value of neurons = 918, if there is more neurons, an error occurs
-def start(m_methods, m_methods_names, m_streams_names, m_smoke_params, m_chunk_size=600, m_neurons=750):
+def start(m_methods, m_methods_names, m_streams_names, m_smoke_params, m_chunk_size=200, m_neurons=750):
     for m_name in m_streams_names:
-        run_for_stream_smoke_weights(m_name, m_methods, m_methods_names, m_chunk_size, m_neurons, m_smoke_params)
+        run_for_stream_smoke_weights(m_name, m_methods, m_methods_names, m_chunk_size, m_neurons, smoke_params=m_smoke_params)
